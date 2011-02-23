@@ -1,0 +1,12 @@
+#! /bin/sh
+
+# This is a script to build the native library (libsqueakvm.so) with Android NDK r3.
+# Make sure that the environment variable NDK_ROOT is defined and points to the root
+# of your NDK installation. Create a symbolic link to the top level of the
+# squeak-tablet project (where the Application.mk file is located) to the `apps'
+# subdirectory of $NDK_ROOT, so the symlink is named `squeak-tablet'.
+
+# android update project -p . -t android-4
+
+(cd $NDK_ROOT; export NDK_TOOLCHAIN=arm-eabi-4.2.1; make APP=squeak-tablet)
+
