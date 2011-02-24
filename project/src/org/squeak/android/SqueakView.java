@@ -1,5 +1,6 @@
 package org.squeak.android;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.Canvas;
@@ -21,6 +22,7 @@ public class SqueakView extends View {
 	int width;
 	int height;
 	int depth;
+	SqueakActivity ctx;
 	Paint paint;
 	int timerDelay;
 
@@ -37,6 +39,7 @@ public class SqueakView extends View {
 
 	public SqueakView(Context context) {
 		super(context);
+		ctx = (SqueakActivity)context;
 		timerDelay = 100;
 		width = 800;
 		height = 600;
@@ -46,8 +49,8 @@ public class SqueakView extends View {
     	timerEvent();
 	}
 	
-	public boolean onKeyEvent(KeyEvent event) {
-		System.out.println("Key Event: " + event);
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		ctx.toastMsg("Key Event: " + event);
 		return true;
 	}
 
@@ -55,20 +58,21 @@ public class SqueakView extends View {
 		int buttons = 0;
 		int modifiers = 0;
 
-		System.out.println("MotionEvent: " + event);
+		ctx.toastMsg("MotionEvent: " + event);
 		switch(event.getAction()) {
-			case MotionEvent.ACTION_DOWN: 
+			case MotionEvent.ACTION_DOWN: // 0
 				buttons = 4;
 				// XXXX: This *should* work but it doesn't. Why???
 				InputMethodManager imm = (InputMethodManager)
-					getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-				boolean result = imm.showSoftInput(this, 0);
-				System.out.println("imm.showSoftInput: " + result);
+					ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
+				boolean result = imm.showSoftInput(this, 
+						InputMethodManager.SHOW_IMPLICIT);
+				ctx.toastMsg("imm.showSoftInput: " + result);
 				break;
-			case MotionEvent.ACTION_MOVE: 
+			case MotionEvent.ACTION_MOVE: // 2
 				buttons = 4;
 				break;
-			case MotionEvent.ACTION_UP: 
+			case MotionEvent.ACTION_UP: // 1
 				buttons = 0;
 				break;
 			default:

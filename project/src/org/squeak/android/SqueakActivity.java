@@ -25,16 +25,11 @@ public class SqueakActivity extends Activity {
     	/* stupid setup dance but I'm not sure who is going to need what here */
     	vm = new SqueakVM();
     	vm.context = this;
-	toastMsg("VM created");
 	vm.setLogLevel(5);
-	toastMsg("Log level set");
     	view = new SqueakView(this);
     	view.vm = vm;
     	vm.view = view;
-	File extstor = Environment.getExternalStorageDirectory();
-//	String imgpath = extstor.getAbsolutePath() + extstor.separator + "android.image";
 	String imgpath = "android.image";
-  
     	vm.loadImage(imgpath, 16*1024*1024);
     	super.onCreate(savedInstanceState);
         setContentView(view);

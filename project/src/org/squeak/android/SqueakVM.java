@@ -17,7 +17,8 @@ public class SqueakVM {
 
     int loadImageFromSdCard(String imageName) throws Exception {
        	context.toastMsg("Loading image file (full) from sdcard");
-	File imgfile = new File("/system/media/sdcard/" + imageName);
+	String imgpath = "/system/media/sdcard/" + imageName;
+	File imgfile = new File(imgpath);
 	long fsize = imgfile.length();
 	context.toastMsg("image found size: " + fsize);
 	int usedheap = ((int)fsize + 8 * 1024 * 1024) & (~1);
@@ -31,6 +32,7 @@ public class SqueakVM {
     		ofs += len;
     	}
 	fstr.close();
+	context.setTitle("Squeak: " + imgpath);
 	return usedheap;
     }
 
@@ -49,6 +51,7 @@ public class SqueakVM {
     		ofs += len;
     	}
 	image.close();
+	context.setTitle("Squeak: assets://" + imageName);
 	return heap;
     }
 
@@ -75,6 +78,7 @@ public class SqueakVM {
        			part++;
        		}
 	} catch (Exception e) {
+		context.setTitle("Squeak: assets://" + imageName);
 		return heap;
 	}
      }
@@ -97,86 +101,13 @@ public class SqueakVM {
 		    context.toastMsg("Failed to load image " + imageName);
 	    } else {
     		loadImageHeap(imageName, heapsz);
+		context.toastMsg("entering interpret");
     		interpret();
+		context.toastMsg("exiting interpret");
 	    }
     }
 
-    public void loadImageOld(String imageName, int heap) {
-	int usedheap = heap;
-    	context.toastMsg("Loading image: " + imageName);
-		/* Try loading from a file on sdcard */
-	try {
-        	context.toastMsg("Loading image file (full) from sdcard");
-		File imgfile = new File("/system/media/sdcard/" + imageName);
-		long fsize = imgfile.length();
-		context.toastMsg("image found size: " + fsize);
-		usedheap = ((int)fsize + 8 * 1024 * 1024) & (~1);
-		InputStream fstr = new FileInputStream(imgfile);
-    		byte buf[] = new byte[4096];
-    		int ofs, len;
-    		ofs = 0;
-		allocate(usedheap);
-		while((len = fstr.read(buf, 0, 4096)) > 0) {
-    			loadMemRegion(buf, ofs, len);
-    			ofs += len;
-    		}
-		fstr.close();
-    		System.out.println("Loading image from heap");
-    		loadImageHeap(imageName, usedheap);
-    		System.out.println("Calling interpret()");
-    		interpret();
-    		System.out.println("Finished");
-		return;
-	} catch(Exception e) {
-    		context.toastMsg(e.toString());
-    		context.toastMsg("Failed to read image file from sdcard");
-    	}
-    	AssetManager assets = context.getAssets();
-    	byte buf[] = new byte[4096];
-    	int ofs, len;
-
-		allocate(heap);
-
-		/* Try loading from a single image file */
-    	try {
-        	context.toastMsg("Loading image file (full) from assets");
-    		InputStream image = assets.open(imageName, 2 /*ACCESS_STREAMING*/);
-    		ofs = 0;
-    		while((len = image.read(buf, 0, 4096)) > 0) {
-    			loadMemRegion(buf, ofs, len);
-    			ofs += len;
-    		}
-    	} catch(Exception e) {
-    		context.toastMsg(e.toString());
-    		context.toastMsg("Failed to read full image file from assets");
-    	}
-
-    	/* Try loading from segments squeak.image.1 ... squeak.image.N */
-    	try {
-    		int part = 1;
-        	context.toastMsg("Loading image file (segments) from assets");
-    		ofs = 0;
-        	while(true) {
-        		String partName = imageName + "." + part;
-            	System.out.println(partName);
-        		InputStream image = assets.open(partName, 2);
-        		while((len = image.read(buf, 0, 4096)) > 0) {
-        			loadMemRegion(buf, ofs, len);
-        			ofs += len;
-        		}
-        		image.close();
-        		part++;
-        	}
-    	} catch(Exception e) {
-    		System.out.println(e);
-    	}
-    	System.out.println("Loading image from heap");
-    	loadImageHeap(imageName, heap);
-    	System.out.println("Calling interpret()");
-    	interpret();
-    	System.out.println("Finished");
-    }
-    
+   
     /* VM callbacks */
     public void invalidate(int left, int top, int right, int bottom) {
     	/* System.out.println("Invalidating: (" + left + "," + top + " -- " + right + "," + bottom + ")"); */
