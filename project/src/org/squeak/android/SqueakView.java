@@ -22,6 +22,7 @@ public class SqueakView extends View {
 	int width;
 	int height;
 	int depth;
+	boolean softKbdOn;
 	SqueakActivity ctx;
 	Paint paint;
 	int timerDelay;
@@ -44,13 +45,41 @@ public class SqueakView extends View {
 		width = 800;
 		height = 600;
 		depth = 32;
+		softKbdOn = false;
 		bits = new int[800*600];
     	paint = new Paint();
     	timerEvent();
 	}
-	
+
+	// Key down: show/hide soft keyboard on menu key.
+
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		ctx.toastMsg("Key Event: " + event);
+		ctx.toastMsg("Key Event: " + event + " " + keyCode);
+		switch(keyCode) {
+			case KeyEvent.KEYCODE_MENU:
+				InputMethodManager imm = (InputMethodManager)
+					ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
+				if (softKbdOn) { // true: hide
+					imm.hideSoftInputFromWindow(this.getWindowToken(), 0);
+				} else {	 // false: show
+					imm.showSoftInput(this, 0);
+				}
+				softKbdOn = !softKbdOn;
+				break;
+			case KeyEvent.KEYCODE_DEL: // maybe special handling for DEL
+				break;
+			default:		 // send key event
+				int uchar = event.getUnicodeChar();
+				vm.sendEvent(	2 /* EventTypeKeyboard */,
+						0 /* timeStamp */,
+						uchar /* charCode */,
+						0 /* EventKeyChar */,
+						0 /* modifiers */,
+						uchar /* utf32Code */,
+						0 /* reserved1 */,
+						0 /* windowIndex */);
+				vm.interpret();
+		}
 		return true;
 	}
 
@@ -58,16 +87,9 @@ public class SqueakView extends View {
 		int buttons = 0;
 		int modifiers = 0;
 
-		ctx.toastMsg("MotionEvent: " + event);
 		switch(event.getAction()) {
 			case MotionEvent.ACTION_DOWN: // 0
 				buttons = 4;
-				// XXXX: This *should* work but it doesn't. Why???
-				InputMethodManager imm = (InputMethodManager)
-					ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
-				boolean result = imm.showSoftInput(this, 
-						InputMethodManager.SHOW_IMPLICIT);
-				ctx.toastMsg("imm.showSoftInput: " + result);
 				break;
 			case MotionEvent.ACTION_MOVE: // 2
 				buttons = 4;

@@ -35,6 +35,7 @@ public class SqueakActivity extends Activity {
         setContentView(view);
         /* Let's see if we can display the soft input */
         view.setFocusable(true);
+	view.setFocusableInTouchMode(true);
         view.requestFocus();
 
     }

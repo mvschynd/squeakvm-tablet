@@ -9,6 +9,8 @@ import java.io.FileInputStream;
 import org.squeak.android.SqueakActivity;
 import org.squeak.android.SqueakView;
 
+import android.os.Environment;
+
 public class SqueakVM {
 	SqueakActivity context;
 	SqueakView view;
@@ -19,6 +21,7 @@ public class SqueakVM {
        	context.toastMsg("Loading image file (full) from sdcard");
 	String imgpath = "/system/media/sdcard/" + imageName;
 	File imgfile = new File(imgpath);
+context.toastMsg("getExternalStorageDirectory: " + Environment.getExternalStorageDirectory());
 	long fsize = imgfile.length();
 	context.toastMsg("image found size: " + fsize);
 	int usedheap = ((int)fsize + 8 * 1024 * 1024) & (~1);
