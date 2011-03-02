@@ -47,8 +47,8 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
                 // The TTS engine has been successfully initialized.
                 // Allow the user to press the button for the app to speak again.
                 // Greet the user.
-                int res = mTts.speak("Hello", TextToSpeech.QUEUE_ADD, null);
-		toastMsg("spoke: " + res);
+                //int res = mTts.speak("Hello", TextToSpeech.QUEUE_ADD, null);
+		//toastMsg("spoke: " + res);
             }
         } else {
             // Initialization failed.

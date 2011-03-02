@@ -22,6 +22,10 @@ public class SqueakView extends View {
 	int width;
 	int height;
 	int depth;
+	int buttonBits;
+	final int redButtonBit = 4;
+	final int yellowButtonBit = 2;
+	final int blueButtonBit = 1;
 	boolean softKbdOn;
 	SqueakActivity ctx;
 	Paint paint;
@@ -47,15 +51,25 @@ public class SqueakView extends View {
 		depth = 32;
 		softKbdOn = false;
 		bits = new int[800*600];
+		buttonBits = redButtonBit;
     	paint = new Paint();
     	timerEvent();
 	}
 
-	// Key down: show/hide soft keyboard on menu key.
+	// Key down: show/hide soft keyboard on menu button. Back button turns the mouse
+	// yellow for one click. Page up button turns the mouse blue for one click.
 
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		ctx.toastMsg("Key Event: " + event + " " + keyCode);
 		switch(keyCode) {
+			case KeyEvent.KEYCODE_BACK:
+				buttonBits = yellowButtonBit;
+				ctx.toastMsg("mouse yellow");
+				return true;
+			case 92: //KeyEvent.KEYCODE_PAGE_UP:
+				buttonBits = blueButtonBit;
+				ctx.toastMsg("mouse blue");
+				return true;
 			case KeyEvent.KEYCODE_MENU:
 				InputMethodManager imm = (InputMethodManager)
 					ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -65,7 +79,7 @@ public class SqueakView extends View {
 					imm.showSoftInput(this, 0);
 				}
 				softKbdOn = !softKbdOn;
-				break;
+				return true;
 			case KeyEvent.KEYCODE_DEL: // special handling for DEL
 				vm.sendEvent(	2 /* EventTypeKeyboard */,
 						0 /* timeStamp */,
@@ -93,19 +107,24 @@ public class SqueakView extends View {
 		return true;
 	}
 
+	// Touch the screen and possibly move while pressing. Current button bits
+	// will be used until the pressure removed, i. e. forward/back button modifiers
+	// last exactly for one touch (or click).
+
 	public boolean onTouchEvent(MotionEvent event) {
 		int buttons = 0;
 		int modifiers = 0;
 
 		switch(event.getAction()) {
 			case MotionEvent.ACTION_DOWN: // 0
-				buttons = 4;
+				buttons = buttonBits;
 				break;
 			case MotionEvent.ACTION_MOVE: // 2
-				buttons = 4;
+				buttons = buttonBits;
 				break;
 			case MotionEvent.ACTION_UP: // 1
 				buttons = 0;
+				buttonBits = redButtonBit;
 				break;
 			default:
 				System.out.println("Unsupported motion action: " + event.getAction());
