@@ -66,9 +66,19 @@ public class SqueakView extends View {
 				}
 				softKbdOn = !softKbdOn;
 				break;
-			case KeyEvent.KEYCODE_DEL: // maybe special handling for DEL
+			case KeyEvent.KEYCODE_DEL: // special handling for DEL
+				vm.sendEvent(	2 /* EventTypeKeyboard */,
+						0 /* timeStamp */,
+						8 /* charCode */,
+						0 /* EventKeyChar */,
+						0 /* modifiers */,
+						8 /* utf32Code */,
+						0 /* reserved1 */,
+						0 /* windowIndex */);
+				vm.interpret();
 				break;
 			default:		 // send key event
+				ctx.setTitle("Key Event: " + event + " " + keyCode);
 				int uchar = event.getUnicodeChar();
 				vm.sendEvent(	2 /* EventTypeKeyboard */,
 						0 /* timeStamp */,

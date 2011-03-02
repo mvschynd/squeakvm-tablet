@@ -104,9 +104,7 @@ context.toastMsg("getExternalStorageDirectory: " + Environment.getExternalStorag
 		    context.toastMsg("Failed to load image " + imageName);
 	    } else {
     		loadImageHeap(imageName, heapsz);
-		context.toastMsg("entering interpret");
     		interpret();
-		context.toastMsg("exiting interpret");
 	    }
     }
 
