@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.MotionEvent;
 import android.view.KeyEvent;
 
+import android.os.Bundle;
+import android.os.ResultReceiver;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
@@ -31,6 +33,32 @@ public class SqueakView extends View {
 	Paint paint;
 	int timerDelay;
 
+	RR rr = new RR(this);
+
+	/* Closure -- ha-ha */
+
+	private class RR extends ResultReceiver {
+		SqueakView owner;
+		public RR(SqueakView sv) {
+			super(getHandler());
+			owner = sv;
+		}
+		protected void  onReceiveResult  (int resultCode, Bundle resultData)
+		{
+			super.onReceiveResult(resultCode, resultData);
+			switch(resultCode) {
+				case InputMethodManager.RESULT_HIDDEN:
+				case InputMethodManager.RESULT_UNCHANGED_HIDDEN:
+					owner.softKbdOn = false;
+					break;
+				case InputMethodManager.RESULT_SHOWN:
+				case InputMethodManager.RESULT_UNCHANGED_SHOWN:
+					owner.softKbdOn = true;
+					break;
+				default:
+			}
+		}
+	}
 
 	public void timerEvent() {
 		final class SqueakTimer implements Runnable {
@@ -46,21 +74,29 @@ public class SqueakView extends View {
 		super(context);
 		ctx = (SqueakActivity)context;
 		timerDelay = 100;
-		width = 800;
-		height = 600;
+		width = 0;
+		height = 0;
 		depth = 32;
 		softKbdOn = false;
-		bits = new int[800*600];
+		bits = null;
 		buttonBits = redButtonBit;
     	paint = new Paint();
     	timerEvent();
+	}
+
+	protected void onLayout(boolean changed, int left, int top, int right, int bottom)
+	{
+		if(!changed) return;
+		this.width = right - left;
+		this.height = bottom - top;
+		this.bits = new int[this.width * this.height];
 	}
 
 	// Key down: show/hide soft keyboard on menu button. Back button turns the mouse
 	// yellow for one click. Page up button turns the mouse blue for one click.
 
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		ctx.toastMsg("Key Event: " + event + " " + keyCode);
+	//	ctx.toastMsg("Key Event: " + event + " " + keyCode);
 		switch(keyCode) {
 			case KeyEvent.KEYCODE_BACK:
 				buttonBits = yellowButtonBit;
@@ -73,12 +109,7 @@ public class SqueakView extends View {
 			case KeyEvent.KEYCODE_MENU:
 				InputMethodManager imm = (InputMethodManager)
 					ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
-				if (softKbdOn) { // true: hide
-					imm.hideSoftInputFromWindow(this.getWindowToken(), 0);
-				} else {	 // false: show
-					imm.showSoftInput(this, 0);
-				}
-				softKbdOn = !softKbdOn;
+				if (!softKbdOn) imm.showSoftInput(this, 0, rr);
 				return true;
 			case KeyEvent.KEYCODE_DEL: // special handling for DEL
 				vm.sendEvent(	2 /* EventTypeKeyboard */,
@@ -92,8 +123,8 @@ public class SqueakView extends View {
 				vm.interpret();
 				break;
 			default:		 // send key event
-				ctx.setTitle("Key Event: " + event + " " + keyCode);
 				int uchar = event.getUnicodeChar();
+				if (uchar == 0) return false;
 				vm.sendEvent(	2 /* EventTypeKeyboard */,
 						0 /* timeStamp */,
 						uchar /* charCode */,
@@ -144,10 +175,12 @@ public class SqueakView extends View {
      */
     @Override
     protected void onDraw(Canvas canvas) {
+	if (bits == null) return;
     	Rect dirtyRect = new Rect(0,0,0,0);
     	if(canvas.getClipBounds(dirtyRect)) {
     		/* System.out.println("dirtyRect: " + dirtyRect); */
-    		vm.updateDisplay(bits, width, height, depth, dirtyRect.left, dirtyRect.top, dirtyRect.right, dirtyRect.bottom);
+    		vm.updateDisplay(bits, width, height, depth, 
+				dirtyRect.left, dirtyRect.top, dirtyRect.right, dirtyRect.bottom);
     	}
         super.onDraw(canvas);
         canvas.drawColor(-1);
