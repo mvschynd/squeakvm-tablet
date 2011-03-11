@@ -6,7 +6,9 @@
 # squeak-tablet project (where the Application.mk file is located) to the `apps'
 # subdirectory of $NDK_ROOT, so the symlink is named `squeak-tablet'.
 
+# Don't forget just after you downloaded/checked out the sources, run the following:
+
 # android update project -p . -t android-4
 
-(cd $NDK_ROOT; export NDK_TOOLCHAIN=arm-eabi-4.2.1; make APP=squeakvm-tablet)
+(cd $NDK_ROOT; export NDK_TOOLCHAIN=arm-eabi-4.2.1; make APP=squeakvm-tablet) && ant debug
 

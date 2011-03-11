@@ -11,6 +11,7 @@ extern sqExport FilePlugin_exports[];
 extern sqExport LargeIntegers_exports[];
 extern sqExport MiscPrimitivePlugin_exports[];
 extern sqExport SocketPlugin_exports[];
+extern sqExport AndroidPlugin_exports[];
 
 sqExport *pluginExports[] = {
 	vm_exports,
@@ -21,5 +22,6 @@ sqExport *pluginExports[] = {
 	LargeIntegers_exports,
 	MiscPrimitivePlugin_exports,
 	SocketPlugin_exports,
+	AndroidPlugin_exports,
 	NULL
 };

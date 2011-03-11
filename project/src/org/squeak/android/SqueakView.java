@@ -109,7 +109,7 @@ public class SqueakView extends View {
 			case KeyEvent.KEYCODE_MENU:
 				InputMethodManager imm = (InputMethodManager)
 					ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
-				if (!softKbdOn) imm.showSoftInput(this, 0, rr);
+				imm.showSoftInput(this, 0, rr);
 				return true;
 			case KeyEvent.KEYCODE_DEL: // special handling for DEL
 				vm.sendEvent(	2 /* EventTypeKeyboard */,
