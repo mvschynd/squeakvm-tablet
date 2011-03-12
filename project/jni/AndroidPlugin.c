@@ -59,6 +59,18 @@ EXPORT(sqInt) inAndroid(void) {
 	interpreterProxy->pushBool(true);
 }
 
+EXPORT(sqInt) androidTTS(void) {
+	sqInt toSpeak;
+	char * toSpeakIndex;
+	toSpeak = interpreterProxy->stackValue(0);
+        if (!(interpreterProxy->isBytes(toSpeak))) {
+                return interpreterProxy->primitiveFail();
+        }
+	toSpeakIndex = interpreterProxy->firstIndexableField(toSpeak);
+	interpreterProxy->pop(2);
+	interpreterProxy->pushInteger(strlen(toSpeakIndex));
+}
+
 EXPORT(sqInt) setInterpreter(struct VirtualMachine* anInterpreter) {
 	    sqInt ok;
 
@@ -74,6 +86,7 @@ EXPORT(sqInt) setInterpreter(struct VirtualMachine* anInterpreter) {
 
 void* AndroidPlugin_exports[][3] = {
        	{"AndroidPlugin", "inAndroid", (void*)inAndroid},
+       	{"AndroidPlugin", "androidTTS", (void*)androidTTS},
        	{"AndroidPlugin", "initialiseModule", (void*)initialiseModule},
 	{"AndroidPlugin", "getModuleName", (void*)getModuleName},
         {"AndroidPlugin", "setInterpreter", (void*)setInterpreter},
