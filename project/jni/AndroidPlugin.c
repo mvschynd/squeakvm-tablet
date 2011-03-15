@@ -62,13 +62,15 @@ EXPORT(sqInt) inAndroid(void) {
 EXPORT(sqInt) androidTTS(void) {
 	sqInt toSpeak;
 	char * toSpeakIndex;
+	int speakres;
 	toSpeak = interpreterProxy->stackValue(0);
         if (!(interpreterProxy->isBytes(toSpeak))) {
                 return interpreterProxy->primitiveFail();
         }
 	toSpeakIndex = interpreterProxy->firstIndexableField(toSpeak);
 	interpreterProxy->pop(2);
-	interpreterProxy->pushInteger(strlen(toSpeakIndex));
+	speakres = speak(toSpeakIndex);
+	interpreterProxy->pushInteger(speakres);
 }
 
 EXPORT(sqInt) setInterpreter(struct VirtualMachine* anInterpreter) {

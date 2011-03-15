@@ -10,10 +10,22 @@ import org.squeak.android.SqueakActivity;
 import org.squeak.android.SqueakView;
 
 import android.os.Environment;
+import android.speech.tts.TextToSpeech;
 
 public class SqueakVM {
 	SqueakActivity context;
 	SqueakView view;
+	TextToSpeech mTts = null;
+
+/* Speak a given string if text */
+
+    int speak(String txt) {
+	if(mTts == null) return -1;
+	context.toastMsg("speaking: " + txt);
+	mTts.speak(txt, TextToSpeech.QUEUE_FLUSH, null);
+	mTts.speak("", TextToSpeech.QUEUE_ADD, null);
+	return txt.length();
+    }
 
 /* Try to load the given image from sdcard. Returns the heap size allocated */
 
@@ -21,7 +33,6 @@ public class SqueakVM {
        	context.toastMsg("Loading image file (full) from sdcard");
 	String imgpath = "/system/media/sdcard/" + imageName;
 	File imgfile = new File(imgpath);
-context.toastMsg("getExternalStorageDirectory: " + Environment.getExternalStorageDirectory());
 	long fsize = imgfile.length();
 	context.toastMsg("image found size: " + fsize);
 	int usedheap = ((int)fsize + 8 * 1024 * 1024) & (~1);

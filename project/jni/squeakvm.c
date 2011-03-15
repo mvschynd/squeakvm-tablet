@@ -26,6 +26,7 @@ static jmethodID sqInvalidate = NULL;
 static unsigned char *sqMemory = NULL;
 static int sqHeaderSize = 0;
 
+
 /* Higher values introduce more logging:
    1 - CRITICAL failures (out of memory etc)
    3 - ERRORS (opening resources etc)
@@ -85,6 +86,29 @@ int ioGetNextEvent(sqInputEvent *evt) {
   return 1;
 }
 
+/****************************************************************************/
+/* Callbacks from the Android plugin. It is expected that SqueakEnv and     */
+/* jsqueak contain valid pointers to the environment and VM instance.       */
+/****************************************************************************/
+
+/*
+ * Invoke the "speak" method of the VM instance.
+ */
+
+int speak(char *txt) {
+    int res;
+    jstring jstr;
+    jmethodID speakmeth;
+    jclass cls = (*SqueakEnv)->GetObjectClass(SqueakEnv, SqueakVM);
+    if(cls == NULL) return -3;
+    speakmeth = (*SqueakEnv)->GetMethodID(SqueakEnv, cls, "speak", "(Ljava/lang/String;)I");
+    if(speakmeth == NULL) return -2;
+    jstr = (*SqueakEnv)->NewStringUTF(SqueakEnv, txt);
+    res = (*SqueakEnv)->CallIntMethod(SqueakEnv, SqueakVM, speakmeth, jstr);
+    return -7;
+    (*SqueakEnv)->ReleaseStringUTFChars(SqueakEnv, jstr, txt);
+    return res;
+}
 
 /****************************************************************************/
 /* JNI entry points */

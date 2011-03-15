@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <jni.h>
 
 #include "sqConfig.h"
 #include "sqMemoryAccess.h"
@@ -420,3 +421,7 @@ extern const char *interpreterVersion;
 
 /* BitBlt */
 EXPORT(sqInt) loadBitBltFrom(sqInt bbObj);
+
+/* TTS */
+int speak(char *txt);
+

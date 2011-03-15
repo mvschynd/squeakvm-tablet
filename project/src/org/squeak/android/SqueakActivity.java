@@ -20,7 +20,8 @@ import java.io.File;
 public class SqueakActivity extends Activity implements TextToSpeech.OnInitListener {
 	SqueakVM vm;
 	SqueakView view;
-	private TextToSpeech mTts;
+	TextToSpeech mTts;
+	boolean canspeak = false;
 	
     // Implements TextToSpeech.OnInitListener.
     public void onInit(int status) {
@@ -40,15 +41,9 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
                // Lanuage data is missing or the language is not supported.
                 toastMsg(loc.toString() + ": Missing language data.");
             } else {
-                // Check the documentation for other possible result codes.
-                // For example, the language may be available for the locale,
-                // but not for the specified country and variant.
-
                 // The TTS engine has been successfully initialized.
-                // Allow the user to press the button for the app to speak again.
-                // Greet the user.
-                //int res = mTts.speak("Hello", TextToSpeech.QUEUE_ADD, null);
-		//toastMsg("spoke: " + res);
+ 		    canspeak = true;
+		    if(vm != null) vm.mTts = mTts;
             }
         } else {
             // Initialization failed.
@@ -69,6 +64,7 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
     	view = new SqueakView(this);
     	view.vm = vm;
     	vm.view = view;
+	if(canspeak) vm.mTts = mTts;
 	String imgpath = "android.image";
     	vm.loadImage(imgpath, 16*1024*1024);
     	super.onCreate(savedInstanceState);
