@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <alloca.h>
 
 #define EXPORT(returnType) returnType
 
@@ -54,22 +55,28 @@ EXPORT(sqInt) initialiseModule(void) {
 	return 1;
 }
 
-EXPORT(sqInt) inAndroid(void) {
+EXPORT(sqInt) primInAndroid(void) {
         interpreterProxy->pop(1);
 	interpreterProxy->pushBool(true);
 }
 
-EXPORT(sqInt) androidTTS(void) {
+EXPORT(sqInt) primSpeak(void) {
 	sqInt toSpeak;
 	char * toSpeakIndex;
+	int toSpeakLen;
 	int speakres;
+	char * spkbuf;
 	toSpeak = interpreterProxy->stackValue(0);
         if (!(interpreterProxy->isBytes(toSpeak))) {
                 return interpreterProxy->primitiveFail();
         }
 	toSpeakIndex = interpreterProxy->firstIndexableField(toSpeak);
+	toSpeakLen = interpreterProxy->byteSizeOf(toSpeak);
+	spkbuf = alloca(toSpeakLen + 1);
+	memset(spkbuf, 0, toSpeakLen + 1);
+	memcpy(spkbuf, toSpeakIndex, toSpeakLen);
+	speakres = speak(spkbuf);
 	interpreterProxy->pop(2);
-	speakres = speak(toSpeakIndex);
 	interpreterProxy->pushInteger(speakres);
 }
 
@@ -87,8 +94,10 @@ EXPORT(sqInt) setInterpreter(struct VirtualMachine* anInterpreter) {
 
 
 void* AndroidPlugin_exports[][3] = {
-       	{"AndroidPlugin", "inAndroid", (void*)inAndroid},
-       	{"AndroidPlugin", "androidTTS", (void*)androidTTS},
+       	{"AndroidPlugin", "primInAndroid", (void*)primInAndroid},
+       	{"AndroidPlugin", "inAndroid", (void*)primInAndroid},
+       	{"AndroidPlugin", "primSpeak", (void*)primSpeak},
+       	{"AndroidPlugin", "androidTTS", (void*)primSpeak},
        	{"AndroidPlugin", "initialiseModule", (void*)initialiseModule},
 	{"AndroidPlugin", "getModuleName", (void*)getModuleName},
         {"AndroidPlugin", "setInterpreter", (void*)setInterpreter},

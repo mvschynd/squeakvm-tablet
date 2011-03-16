@@ -12,6 +12,8 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 
+#include <fcntl.h>
+
 #ifndef SQUEAK_BUILTIN_PLUGIN
 # error "SQUEAK_BUILTIN_PLUGIN must be defined"
 #endif
@@ -22,6 +24,7 @@ extern struct VirtualMachine *interpreterProxy;
 static JNIEnv *SqueakEnv = NULL;
 static jobject *SqueakVM = NULL;
 static jmethodID sqInvalidate = NULL;
+static jmethodID sqSpeak = NULL;
 
 static unsigned char *sqMemory = NULL;
 static int sqHeaderSize = 0;
@@ -91,6 +94,15 @@ int ioGetNextEvent(sqInputEvent *evt) {
 /* jsqueak contain valid pointers to the environment and VM instance.       */
 /****************************************************************************/
 
+void jnilog(char *str) {
+	int fd = open("/system/media/sdcard/Jni.log", O_RDWR | O_APPEND | O_CREAT, 0666);
+	if(fd > -1) {
+		write(fd, str, strlen(str));
+		write(fd, "\n", 1);
+		close(fd);
+	}
+}
+
 /*
  * Invoke the "speak" method of the VM instance.
  */
@@ -98,15 +110,18 @@ int ioGetNextEvent(sqInputEvent *evt) {
 int speak(char *txt) {
     int res;
     jstring jstr;
-    jmethodID speakmeth;
-    jclass cls = (*SqueakEnv)->GetObjectClass(SqueakEnv, SqueakVM);
-    if(cls == NULL) return -3;
-    speakmeth = (*SqueakEnv)->GetMethodID(SqueakEnv, cls, "speak", "(Ljava/lang/String;)I");
-    if(speakmeth == NULL) return -2;
+    if(SqueakEnv == NULL || SqueakVM == NULL) return -5;
+    if(sqSpeak == NULL) {
+        jmethodID speakmeth;
+        jclass cls = (*SqueakEnv)->GetObjectClass(SqueakEnv, SqueakVM);
+        if(cls == NULL) return -3;
+        speakmeth = (*SqueakEnv)->GetMethodID(SqueakEnv, cls, "speak", "(Ljava/lang/String;)I");
+        if(speakmeth == NULL) return -2;
+        sqSpeak = speakmeth;
+    }
     jstr = (*SqueakEnv)->NewStringUTF(SqueakEnv, txt);
-    res = (*SqueakEnv)->CallIntMethod(SqueakEnv, SqueakVM, speakmeth, jstr);
-    return -7;
-    (*SqueakEnv)->ReleaseStringUTFChars(SqueakEnv, jstr, txt);
+    if(jstr == NULL) return -4;
+    res = (*SqueakEnv)->CallIntMethod(SqueakEnv, SqueakVM, sqSpeak, jstr);
     return res;
 }
 
