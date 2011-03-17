@@ -423,5 +423,8 @@ extern const char *interpreterVersion;
 EXPORT(sqInt) loadBitBltFrom(sqInt bbObj);
 
 /* TTS */
-int speak(char *txt);
+int speak(char *);
+int setPitch(float);
+int setSpeechRate(float);
+int stop();
 

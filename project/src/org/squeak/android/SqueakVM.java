@@ -16,13 +16,40 @@ public class SqueakVM {
 	SqueakActivity context;
 	SqueakView view;
 	TextToSpeech mTts = null;
+	float pitch = 1.0f;
+	float rate = 1.0f;
+
+/* Store the desired speech rate value */
+
+    int setSpeechRate(float r) {
+	if(mTts == null) return TextToSpeech.ERROR;
+	rate = r;
+	return TextToSpeech.SUCCESS;
+    }
+
+/* Store the desired pitch value */
+
+    int setPitch(float p) {
+	if(mTts == null) return TextToSpeech.ERROR;
+	pitch = p;
+	return TextToSpeech.SUCCESS;
+    }
+
+/* Stop the speech */
+
+    int stop() {
+	if(mTts == null) return TextToSpeech.ERROR;
+	return mTts.stop();
+    }
 
 /* Speak a given string if text */
 
     int speak(String txt) {
 	if(mTts == null) return -1;
 	context.toastMsg("speaking: " + txt);
-	mTts.speak(txt, TextToSpeech.QUEUE_FLUSH, null);
+	mTts.setPitch(pitch);
+	mTts.setSpeechRate(rate);
+	mTts.speak(txt, TextToSpeech.QUEUE_ADD, null);
 	mTts.speak("", TextToSpeech.QUEUE_ADD, null);
 	return txt.length();
     }

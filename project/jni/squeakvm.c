@@ -25,6 +25,9 @@ static JNIEnv *SqueakEnv = NULL;
 static jobject *SqueakVM = NULL;
 static jmethodID sqInvalidate = NULL;
 static jmethodID sqSpeak = NULL;
+static jmethodID sqSetPitch = NULL;
+static jmethodID sqSetSpeechRate = NULL;
+static jmethodID sqStop = NULL;
 
 static unsigned char *sqMemory = NULL;
 static int sqHeaderSize = 0;
@@ -95,12 +98,30 @@ int ioGetNextEvent(sqInputEvent *evt) {
 /****************************************************************************/
 
 void jnilog(char *str) {
-	int fd = open("/system/media/sdcard/Jni.log", O_RDWR | O_APPEND | O_CREAT, 0666);
+	int fd = open("/system/media/sdcard/jni.log", O_RDWR | O_APPEND | O_CREAT, 0666);
 	if(fd > -1) {
 		write(fd, str, strlen(str));
 		write(fd, "\n", 1);
 		close(fd);
 	}
+}
+
+/*
+ * Cache a VM method in a static pointer variable. 
+ * Only works for SqueakEnv and SqueakVM,
+ */
+
+int cachemtd(char *mtdname, char *mtdsig, jmethodID *pmtd) {
+	jmethodID meth;
+	jclass cls;
+	if(SqueakEnv == NULL || SqueakVM == NULL) return -5;
+	if(*pmtd != NULL) return 1;
+	cls = (*SqueakEnv)->GetObjectClass(SqueakEnv, SqueakVM);
+	if(cls == NULL) return -3;
+	meth = (*SqueakEnv)->GetMethodID(SqueakEnv, cls, mtdname, mtdsig);
+	if(meth == NULL) return -2;
+	*pmtd = meth;
+	return 1;
 }
 
 /*
@@ -110,18 +131,47 @@ void jnilog(char *str) {
 int speak(char *txt) {
     int res;
     jstring jstr;
-    if(SqueakEnv == NULL || SqueakVM == NULL) return -5;
-    if(sqSpeak == NULL) {
-        jmethodID speakmeth;
-        jclass cls = (*SqueakEnv)->GetObjectClass(SqueakEnv, SqueakVM);
-        if(cls == NULL) return -3;
-        speakmeth = (*SqueakEnv)->GetMethodID(SqueakEnv, cls, "speak", "(Ljava/lang/String;)I");
-        if(speakmeth == NULL) return -2;
-        sqSpeak = speakmeth;
-    }
+    res = cachemtd("speak", "(Ljava/lang/String;)I", &sqSpeak);
+    if(res < 0) return res;
     jstr = (*SqueakEnv)->NewStringUTF(SqueakEnv, txt);
     if(jstr == NULL) return -4;
     res = (*SqueakEnv)->CallIntMethod(SqueakEnv, SqueakVM, sqSpeak, jstr);
+    return res;
+}
+
+/*
+ * Invoke the "stop" method of the VM instance.
+ */
+
+int stop() {
+    int res;
+    res = cachemtd("setStop", "()I", &sqStop);
+    if(res < 0) return res;
+    res = (*SqueakEnv)->CallIntMethod(SqueakEnv, SqueakVM, sqStop);
+    return res;
+}
+
+/*
+ * Invoke the "setSpeechRate" method of the VM instance.
+ */
+
+int setSpeechRate(float rate) {
+    int res;
+    res = cachemtd("setSpeechRate", "(F)I", &sqSetSpeechRate);
+    if(res < 0) return res;
+    res = (*SqueakEnv)->CallIntMethod(SqueakEnv, SqueakVM, sqSetSpeechRate, rate);
+    return res;
+}
+
+/*
+ * Invoke the "setPitch" method of the VM instance.
+ */
+
+int setPitch(float pitch) {
+    int res;
+    res = cachemtd("setPitch", "(F)I", &sqSetPitch);
+    if(res < 0) return res;
+    res = (*SqueakEnv)->CallIntMethod(SqueakEnv, SqueakVM, sqSetPitch, pitch);
     return res;
 }
 
