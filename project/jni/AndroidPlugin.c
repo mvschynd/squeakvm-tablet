@@ -80,6 +80,26 @@ EXPORT(sqInt) primSpeak(void) {
 	interpreterProxy->pushInteger(speakres);
 }
 
+EXPORT(sqInt) primStop(void) {
+	int res = stop();
+	interpreterProxy->pop(1);
+	interpreterProxy->pushInteger(res);
+}
+
+EXPORT(sqInt) primSetPitch(void) {
+	float pitch = (float)interpreterProxy->stackFloatValue(0);
+	int res = setPitch(pitch);
+	interpreterProxy->pop(2);
+	interpreterProxy->pushInteger(res);
+}
+
+EXPORT(sqInt) primSetSpeechRate(void) {
+	float rate = (float)interpreterProxy->stackFloatValue(0);
+	int res = setSpeechRate(rate);
+	interpreterProxy->pop(2);
+	interpreterProxy->pushInteger(res);
+}
+
 EXPORT(sqInt) setInterpreter(struct VirtualMachine* anInterpreter) {
 	    sqInt ok;
 
@@ -98,6 +118,9 @@ void* AndroidPlugin_exports[][3] = {
        	{"AndroidPlugin", "inAndroid", (void*)primInAndroid},
        	{"AndroidPlugin", "primSpeak", (void*)primSpeak},
        	{"AndroidPlugin", "androidTTS", (void*)primSpeak},
+       	{"AndroidPlugin", "primSetPitch", (void*)primSetPitch},
+       	{"AndroidPlugin", "primStop", (void*)primStop},
+       	{"AndroidPlugin", "primSetSpeechRate", (void*)primSetSpeechRate},
        	{"AndroidPlugin", "initialiseModule", (void*)initialiseModule},
 	{"AndroidPlugin", "getModuleName", (void*)getModuleName},
         {"AndroidPlugin", "setInterpreter", (void*)setInterpreter},
