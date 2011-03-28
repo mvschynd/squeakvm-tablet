@@ -18,6 +18,8 @@ import android.view.inputmethod.InputMethodManager;
 import org.squeak.android.SqueakVM;
 import org.squeak.android.SqueakInputConnection;
 
+import java.lang.System;
+
 public class SqueakView extends View {
 	SqueakVM vm;
 	int bits[];
@@ -25,6 +27,8 @@ public class SqueakView extends View {
 	int height;
 	int depth;
 	int buttonBits;
+	long timestamp = System.nanoTime();
+	int lastX = -1, lastY = -1;
 	final int redButtonBit = 4;
 	final int yellowButtonBit = 2;
 	final int blueButtonBit = 1;
@@ -145,6 +149,11 @@ public class SqueakView extends View {
 	public boolean onTouchEvent(MotionEvent event) {
 		int buttons = 0;
 		int modifiers = 0;
+		int ex = (int)event.getX();
+		int ey = (int)event.getY();
+		int dx = ex - lastX;
+		int dy = ey - lastY;
+		long ts = System.nanoTime();
 
 		switch(event.getAction()) {
 			case MotionEvent.ACTION_DOWN: // 0
@@ -158,11 +167,15 @@ public class SqueakView extends View {
 				buttonBits = redButtonBit;
 				break;
 			default:
-				System.out.println("Unsupported motion action: " + event.getAction());
+				System.out.println("Unsupported mtn. action: " + event.getAction());
 				return false;
 		}
+		lastX = ex;
+		lastY = ey;
+		timestamp = ts;
+//		ctx.toastMsg(event.toString());
 		vm.sendEvent(1 /* EventTypeMouse */, 0 /* timestamp */, 
-					(int)event.getX(), (int)event.getY(), 
+					ex, ey, 
 					buttons, modifiers, 0, 0);
 		vm.interpret();
 		return true;
