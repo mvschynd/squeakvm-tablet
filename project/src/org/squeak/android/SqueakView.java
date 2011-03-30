@@ -94,6 +94,7 @@ public class SqueakView extends View {
 		this.width = right - left;
 		this.height = bottom - top;
 		this.bits = new int[this.width * this.height];
+		vm.setScreenSize(this.width, this.height);
 	}
 
 	// Key down: show/hide soft keyboard on menu button. Back button turns the mouse

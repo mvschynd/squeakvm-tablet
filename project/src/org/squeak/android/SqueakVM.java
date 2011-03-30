@@ -159,6 +159,7 @@ public class SqueakVM {
     public native int setLogLevel(int logLevel);
 
     /* Main entry points */
+    public native int setScreenSize(int w, int h);
     public native int loadImageHeap(String imageName, int heap);
     public native int sendEvent(int type, int stamp, int arg3, int arg4,
 				int arg5, int arg6, int arg7, int arg8);

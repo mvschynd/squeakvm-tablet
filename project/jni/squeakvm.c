@@ -29,6 +29,8 @@ static jmethodID sqSetPitch = NULL;
 static jmethodID sqSetSpeechRate = NULL;
 static jmethodID sqStop = NULL;
 
+static int scrw = 0, scrh = 0;
+
 static unsigned char *sqMemory = NULL;
 static int sqHeaderSize = 0;
 
@@ -178,6 +180,15 @@ int setPitch(float pitch) {
 /****************************************************************************/
 /* JNI entry points */
 /****************************************************************************/
+
+int
+Java_org_squeak_android_SqueakVM_setScreenSize(JNIEnv *env, jobject self,
+					       int w, int h) {
+  scrw = w;
+  scrh = h;
+  return 0;
+}
+
 int 
 Java_org_squeak_android_SqueakVM_loadImageHeap(JNIEnv *env, jobject self,
 					       jstring imageName, 
@@ -639,7 +650,9 @@ sqInt ioRelinquishProcessorForMicroseconds(sqInt microSeconds){
 }
 
 sqInt ioScreenSize(void){
-  return (800 << 16) | (600);
+  int actw = scrw?scrw:800;
+  int acth = scrh?scrh:600;
+  return (scrw << 16) | (scrh);
 }
 
 sqInt ioScreenDepth(void){
