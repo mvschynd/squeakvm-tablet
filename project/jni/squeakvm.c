@@ -9,6 +9,7 @@
 #include <time.h>
 #include <errno.h>
 #include <string.h>
+#include <libgen.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 
@@ -193,19 +194,23 @@ int
 Java_org_squeak_android_SqueakVM_loadImageHeap(JNIEnv *env, jobject self,
 					       jstring imageName, 
 					       int heapSize) {
-  if(longAt(sqMemory) < 0xFFFF) {
-    sqHeaderSize = longAt(sqMemory+4);
-  } else {
-    sqHeaderSize = byteSwapped(longAt(sqMemory+4));
+  const char *imgpath = (*env)->GetStringUTFChars(env, imageName, 0);
+  char *imgdir = dirname(imgpath);
+  int rc = chdir(imgdir);
+  if(rc == 0) {
+    if(longAt(sqMemory) < 0xFFFF) {
+      sqHeaderSize = longAt(sqMemory+4);
+    } else {
+      sqHeaderSize = byteSwapped(longAt(sqMemory+4));
+    }
+    initTimer();
+    aioInit();
+    dprintf(4, "loadImageHeap: headerSize = %d\n", sqHeaderSize);
+    readImageFromFileHeapSizeStartingAt(0, heapSize-sqHeaderSize, 0);
+    prepareActiveProcess();
   }
-  initTimer();
-  aioInit();
-  dprintf(4, "loadImageHeap: headerSize = %d\n", sqHeaderSize);
-  //imageFile = sqImageFileOpen(imageName, "rb");
-  readImageFromFileHeapSizeStartingAt(0, heapSize-sqHeaderSize, 0);
-  //sqImageFileClose(imageFile);
-  prepareActiveProcess();
-  return 0;
+  (*env)->ReleaseStringUTFChars(env, imageName, imgpath);
+  return rc;
 }
 
 int
@@ -397,8 +402,12 @@ sqInt dir_Delimitor(void) {
 sqInt dir_Create(char *pathString, sqInt pathStringLength) {
   /* Create a new directory with the given path. By default, this
      directory is created relative to the cwd. */
+
+  char curd[MAXPATHLEN+1];
   char name[MAXPATHLEN+1];
   int i;
+  getcwd(curd, MAXPATHLEN);
+  jnilog(curd);
   dprintf(7, "%s\n", __FUNCTION__);
   if (pathStringLength >= MAXPATHLEN) return false;
   if (!sq2uxPath(pathString, pathStringLength, name, MAXPATHLEN, 1))
@@ -652,7 +661,7 @@ sqInt ioRelinquishProcessorForMicroseconds(sqInt microSeconds){
 sqInt ioScreenSize(void){
   int actw = scrw?scrw:800;
   int acth = scrh?scrh:600;
-  return (scrw << 16) | (scrh);
+  return (actw << 16) | (acth);
 }
 
 sqInt ioScreenDepth(void){

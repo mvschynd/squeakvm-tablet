@@ -141,8 +141,12 @@ public class SqueakVM {
 	    if (heapsz == 0) {
 		    context.toastMsg("Failed to load image " + imageName);
 	    } else {
-    		loadImageHeap(imageName, heapsz);
-    		interpret();
+    		int rc = loadImageHeap(imageName, heapsz);
+		if (rc == 0) {
+    		    interpret();
+		} else {
+		    context.toastMsg("Failed to load image " + imageName);
+		}
 	    }
     }
 
