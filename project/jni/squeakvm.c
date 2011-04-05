@@ -191,26 +191,37 @@ Java_org_squeak_android_SqueakVM_setScreenSize(JNIEnv *env, jobject self,
 }
 
 int 
+Java_org_squeak_android_SqueakVM_setImageDirectory(JNIEnv *env, jobject self,
+					           jstring imageName) {
+  char *imgdir;
+  const char *imgpath = (*env)->GetStringUTFChars(env, imageName, 0);
+  jnilog("setting current directory");
+  jnilog(imgpath);
+  imgdir = dirname(imgpath);
+  jnilog(imgdir);
+  int rc = chdir(imgdir);
+  char curd[MAXPATHLEN+1];
+  getcwd(curd, MAXPATHLEN);
+  jnilog(curd);
+  (*env)->ReleaseStringUTFChars(env, imageName, imgpath);
+  return rc;
+}
+
+int 
 Java_org_squeak_android_SqueakVM_loadImageHeap(JNIEnv *env, jobject self,
 					       jstring imageName, 
 					       int heapSize) {
-  const char *imgpath = (*env)->GetStringUTFChars(env, imageName, 0);
-  char *imgdir = dirname(imgpath);
-  int rc = chdir(imgdir);
-  if(rc == 0) {
-    if(longAt(sqMemory) < 0xFFFF) {
-      sqHeaderSize = longAt(sqMemory+4);
-    } else {
-      sqHeaderSize = byteSwapped(longAt(sqMemory+4));
-    }
-    initTimer();
-    aioInit();
-    dprintf(4, "loadImageHeap: headerSize = %d\n", sqHeaderSize);
-    readImageFromFileHeapSizeStartingAt(0, heapSize-sqHeaderSize, 0);
-    prepareActiveProcess();
+  if(longAt(sqMemory) < 0xFFFF) {
+    sqHeaderSize = longAt(sqMemory+4);
+  } else {
+    sqHeaderSize = byteSwapped(longAt(sqMemory+4));
   }
-  (*env)->ReleaseStringUTFChars(env, imageName, imgpath);
-  return rc;
+  initTimer();
+  aioInit();
+  dprintf(4, "loadImageHeap: headerSize = %d\n", sqHeaderSize);
+  readImageFromFileHeapSizeStartingAt(0, heapSize-sqHeaderSize, 0);
+  prepareActiveProcess();
+  return 0;
 }
 
 int
@@ -366,6 +377,7 @@ time_t convertToSqueakTime(time_t unixTime) {
   return unixTime + ((52*365UL + 17*366UL) * 24*60*60UL);
 }
 
+
 # define NAMLEN(dirent) strlen((dirent)->d_name)
 int sq2uxPath(char* sqString, int sqLength, char* uxString, int uxLength, int term) {
   int count = uxLength < sqLength ? uxLength : sqLength;
@@ -406,12 +418,13 @@ sqInt dir_Create(char *pathString, sqInt pathStringLength) {
   char curd[MAXPATHLEN+1];
   char name[MAXPATHLEN+1];
   int i;
+  jnilog(__FUNCTION__);
   getcwd(curd, MAXPATHLEN);
   jnilog(curd);
-  dprintf(7, "%s\n", __FUNCTION__);
   if (pathStringLength >= MAXPATHLEN) return false;
   if (!sq2uxPath(pathString, pathStringLength, name, MAXPATHLEN, 1))
     return false;
+  jnilog(name);
   return mkdir(name, 0777) == 0;	/* rwxrwxrwx & ~umask */
 }
 
@@ -419,7 +432,7 @@ sqInt dir_Delete(char *pathString, sqInt pathStringLength) {
   /* Delete the existing directory with the given path. */
   char name[MAXPATHLEN+1];
   int i;
-  dprintf(7, "%s\n", __FUNCTION__);
+  jnilog(__FUNCTION__);
   if (pathStringLength >= MAXPATHLEN) return false;
   if (!sq2uxPath(pathString, pathStringLength, name, MAXPATHLEN, 1))
     return false;

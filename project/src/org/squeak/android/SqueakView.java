@@ -13,10 +13,10 @@ import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.InputMethodManager;
 
 import org.squeak.android.SqueakVM;
-import org.squeak.android.SqueakInputConnection;
 
 import java.lang.System;
 
@@ -212,7 +212,7 @@ public class SqueakView extends View {
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
     	if(!onCheckIsTextEditor()) return null;
-    	return new SqueakInputConnection(this, false);
+    	return new BaseInputConnection(this, false);
     }
     
     public void sendText(CharSequence text) {
