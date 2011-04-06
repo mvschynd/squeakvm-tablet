@@ -212,7 +212,6 @@ sqInt sqFileOpen(SQFile *f, char* sqFileName, sqInt sqFileNameSize, sqInt writeF
 	  setFile(f, stderr);
 	else
 	  interpreterProxy->ioFilenamefromStringofLengthresolveAliases(cFileName, sqFileName, sqFileNameSize, true);
-
 	if (writeFlag) {
 		/* First try to open an existing file read/write: */
 		if (getFile(f) == NULL)

@@ -191,20 +191,15 @@ Java_org_squeak_android_SqueakVM_setScreenSize(JNIEnv *env, jobject self,
 }
 
 int 
-Java_org_squeak_android_SqueakVM_setImageDirectory(JNIEnv *env, jobject self,
-					           jstring imageName) {
-  char *imgdir;
-  const char *imgpath = (*env)->GetStringUTFChars(env, imageName, 0);
-  jnilog("setting current directory");
-  jnilog(imgpath);
-  imgdir = dirname(imgpath);
-  jnilog(imgdir);
-  int rc = chdir(imgdir);
-  char curd[MAXPATHLEN+1];
-  getcwd(curd, MAXPATHLEN);
-  jnilog(curd);
-  (*env)->ReleaseStringUTFChars(env, imageName, imgpath);
-  return rc;
+Java_org_squeak_android_SqueakVM_setImagePath(JNIEnv *env, jobject self,
+					      jstring imageName_) {
+  const char *imgpath = (*env)->GetStringUTFChars(env, imageName_, 0);
+  if(strlen(imgpath) <= MAXPATHLEN)
+    strcpy(imageName, imgpath);
+  char *dir = dirname(imgpath);
+  chdir(dir);
+  (*env)->ReleaseStringUTFChars(env, imageName_, imgpath);
+  return 0;
 }
 
 int 
@@ -381,7 +376,7 @@ time_t convertToSqueakTime(time_t unixTime) {
 # define NAMLEN(dirent) strlen((dirent)->d_name)
 int sq2uxPath(char* sqString, int sqLength, char* uxString, int uxLength, int term) {
   int count = uxLength < sqLength ? uxLength : sqLength;
-  memcpy(uxString, sqString, count-term);
+  memcpy(uxString, sqString, count);
   if(term) uxString[count] = '\0';
   return count;
 }
@@ -389,7 +384,7 @@ int sq2uxPath(char* sqString, int sqLength, char* uxString, int uxLength, int te
 int ux2sqPath(char* uxString, int uxLength, char* sqString, int sqLength, int term) {
   int count = uxLength < sqLength ? uxLength : sqLength;
   dprintf(7, "%s\n", __FUNCTION__);
-  memcpy(sqString, uxString, count-term);
+  memcpy(sqString, uxString, count);
   if(term) sqString[count] = '\0';
   return count;
 }
@@ -415,24 +410,16 @@ sqInt dir_Create(char *pathString, sqInt pathStringLength) {
   /* Create a new directory with the given path. By default, this
      directory is created relative to the cwd. */
 
-  char curd[MAXPATHLEN+1];
   char name[MAXPATHLEN+1];
-  int i;
-  jnilog(__FUNCTION__);
-  getcwd(curd, MAXPATHLEN);
-  jnilog(curd);
   if (pathStringLength >= MAXPATHLEN) return false;
   if (!sq2uxPath(pathString, pathStringLength, name, MAXPATHLEN, 1))
     return false;
-  jnilog(name);
   return mkdir(name, 0777) == 0;	/* rwxrwxrwx & ~umask */
 }
 
 sqInt dir_Delete(char *pathString, sqInt pathStringLength) {
   /* Delete the existing directory with the given path. */
   char name[MAXPATHLEN+1];
-  int i;
-  jnilog(__FUNCTION__);
   if (pathStringLength >= MAXPATHLEN) return false;
   if (!sq2uxPath(pathString, pathStringLength, name, MAXPATHLEN, 1))
     return false;
@@ -612,7 +599,7 @@ sqInt clipboardReadIntoAt(sqInt count, sqInt byteArrayIndex, sqInt startIndex) {
 sqInt clipboardWriteFromAt(sqInt count, sqInt byteArrayIndex, sqInt startIndex) { return 0; }
 
 /* Image file and VM path names. */
-char imageName[256];
+char imageName[MAXPATHLEN + 1];
 char *getImageName(void) { return imageName; }
 
 sqInt imageNameGetLength(sqInt sqImageNameIndex, sqInt length){
@@ -798,5 +785,19 @@ sqInt getAttributeIntoLength(sqInt id, sqInt byteArrayIndex, sqInt length){
   return count;
 }
 
-sqInt sqGetFilenameFromString(char * aCharBuffer, char * aFilenameString, sqInt filenameLength, sqInt aBoolean) { return 0; }
+/* A guessed implementation of getting a filename from Squeak string: 
+ * it returned NULL: no wonder file access did not work...
+ * No checks for buffer overflow at all here...
+ */
+
+sqInt sqGetFilenameFromString(
+		char * aCharBuffer, 
+		char * aFilenameString, 
+		sqInt filenameLength, 
+		sqInt aBoolean) { 
+	memcpy(aCharBuffer, aFilenameString, filenameLength);
+	aCharBuffer[filenameLength] = 0;
+	return 0;
+}
+
 sqInt ioDisablePowerManager(sqInt disableIfNonZero) { return 0; }

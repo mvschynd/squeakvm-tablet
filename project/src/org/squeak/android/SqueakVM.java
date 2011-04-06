@@ -73,7 +73,7 @@ public class SqueakVM {
     		ofs += len;
     	}
 	fstr.close();
-	setImageDirectory(imgpath);
+	setImagePath(imgpath);
 	context.setTitle("Squeak: " + imgpath);
 	return usedheap;
     }
@@ -166,7 +166,7 @@ public class SqueakVM {
     /* Main entry points */
     public native int setScreenSize(int w, int h);
     public native int loadImageHeap(String imageName, int heap);
-    public native int setImageDirectory(String imageName);
+    public native int setImagePath(String imageName);
     public native int sendEvent(int type, int stamp, int arg3, int arg4,
 				int arg5, int arg6, int arg7, int arg8);
     public native int updateDisplay(int bits[], int w, int h, int d, int l, int t, int r, int b);
