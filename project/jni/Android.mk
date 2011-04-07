@@ -22,7 +22,7 @@ LOCAL_SRC_FILES := squeakvm.c interp.c sqNamedPrims.c sqVirtualMachine.c \
 	MiscPrimitivePlugin.c SocketPlugin.c sqFilePluginBasicPrims.c sqExternalPrims.c \
 	aio.c sqUnixSocket.c
 
-LOCAL_CFLAGS += -DSQUEAK_BUILTIN_PLUGIN -O2
+LOCAL_CFLAGS += -DSQUEAK_BUILTIN_PLUGIN -O3
 LOCAL_LDLIBS += -llog
 include $(BUILD_SHARED_LIBRARY)
 

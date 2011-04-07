@@ -10,5 +10,5 @@
 
 # android update project -p . -t android-4
 
-(cd $NDK_ROOT; export NDK_TOOLCHAIN=arm-eabi-4.2.1; make APP=squeakvm-tablet) && ant debug
+(cd $NDK_ROOT; export NDK_TOOLCHAIN=arm-eabi-4.2.1; export NDK_DEBUG=0; make APP=squeakvm-tablet) && ant debug
 
