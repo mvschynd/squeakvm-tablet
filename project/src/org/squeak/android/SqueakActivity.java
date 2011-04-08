@@ -5,8 +5,15 @@ import android.os.Bundle;
 
 import org.squeak.android.SqueakVM;
 import org.squeak.android.SqueakView;
+import org.squeak.android.SqueakImgList;
 
 import android.widget.Toast;
+import android.widget.ListAdapter;
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.view.View;
+import android.widget.TextView;
 import android.view.Gravity;
 
 import android.speech.tts.TextToSpeech;
@@ -20,6 +27,7 @@ import java.io.File;
 public class SqueakActivity extends Activity implements TextToSpeech.OnInitListener {
 	SqueakVM vm;
 	SqueakView view;
+	SqueakImgList imgl;
 	TextToSpeech mTts;
 	boolean canspeak = false;
 	
@@ -55,7 +63,23 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
+    	super.onCreate(savedInstanceState);
+	final SqueakActivity ctx = this;
     	toastMsg("onCreate");
+	imgl = new SqueakImgList(this);
+	imgl.setAdapter(new ArrayAdapter<String>(this, R.layout.list_item, new String[]{"aa", "bb"}));
+	setContentView(imgl);
+	imgl.setFocusable(true);
+	imgl.requestFocus();
+	imgl.setOnItemClickListener(new OnItemClickListener() {
+	    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		    ctx.toastMsg(((TextView) view).getText().toString());
+            }
+	});
+//	startVM(savedInstanceState);
+    }
+
+    public void startVM(Bundle savedInstanceState) {
 
     	/* stupid setup dance but I'm not sure who is going to need what here */
     	vm = new SqueakVM();
@@ -67,7 +91,7 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
 	if(canspeak) vm.mTts = mTts;
 	String imgpath = "android.image";
     	vm.loadImage(imgpath, 16*1024*1024);
-    	super.onCreate(savedInstanceState);
+//    	super.onCreate(savedInstanceState);
         setContentView(view);
         /* Let's see if we can display the soft input */
         view.setFocusable(true);
