@@ -23,6 +23,10 @@ import android.os.Environment;
 import android.content.Intent;
 
 import java.io.File;
+import java.io.FileFilter;
+
+import java.util.Arrays;
+import java.util.ArrayList;
 
 public class SqueakActivity extends Activity implements TextToSpeech.OnInitListener {
 	SqueakVM vm;
@@ -59,6 +63,35 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
         }
     }
 
+	/** Walk along the image search path (colon-separated) and look
+	 * for files with extension .image, recursing into directories when needed
+	 * Return a list of files found.
+	 */
+
+    File[] findImages(String dir) {
+	try {
+	    File fdir = new File(dir);
+	    if(!fdir.isDirectory()) return new File[0];
+	    File[] images = fdir.listFiles(new FileFilter() {
+		public boolean accept(File f) {
+		    return f.getName().endsWith(".image");
+		}
+	    });
+	    return images;
+	} catch (Exception e) {
+            return new File[0];
+	}
+    }
+
+    File[] findImageFiles(String[] dirs) {
+	ArrayList<File> res = new ArrayList<File>();
+	for(int i = 0; i < dirs.length; i++) {
+	    File[] imgs = findImages(dirs[i]);
+	    ArrayList<File> aimg = new ArrayList<File>(Arrays.asList(imgs));
+	    res.addAll(aimg);
+	}
+	return (File[])res.toArray(new File[res.size()]);
+    }
 
 	/** Called when the activity is first created. */
     @Override
@@ -66,20 +99,22 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
     	super.onCreate(savedInstanceState);
 	final SqueakActivity ctx = this;
     	toastMsg("onCreate");
+	String imgdirs = getText(R.string.imgdirs).toString();
+	File[] imgfiles = findImageFiles(imgdirs.split(File.pathSeparator));
 	imgl = new SqueakImgList(this);
-	imgl.setAdapter(new ArrayAdapter<String>(this, R.layout.list_item, new String[]{"aa", "bb"}));
+	imgl.setAdapter(new ArrayAdapter<File>(this, R.layout.list_item, imgfiles));
 	setContentView(imgl);
 	imgl.setFocusable(true);
 	imgl.requestFocus();
 	imgl.setOnItemClickListener(new OnItemClickListener() {
 	    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		    ctx.toastMsg(((TextView) view).getText().toString());
+		    ctx.startVM(((TextView) view).getText().toString());
             }
 	});
 //	startVM(savedInstanceState);
     }
 
-    public void startVM(Bundle savedInstanceState) {
+    public void startVM(String imgpath) {
 
     	/* stupid setup dance but I'm not sure who is going to need what here */
     	vm = new SqueakVM();
@@ -89,7 +124,6 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
     	view.vm = vm;
     	vm.view = view;
 	if(canspeak) vm.mTts = mTts;
-	String imgpath = "android.image";
     	vm.loadImage(imgpath, 16*1024*1024);
 //    	super.onCreate(savedInstanceState);
         setContentView(view);

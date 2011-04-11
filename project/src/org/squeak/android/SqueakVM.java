@@ -58,7 +58,7 @@ public class SqueakVM {
 
     int loadImageFromSdCard(String imageName) throws Exception {
        	context.toastMsg("Loading image file (full) from sdcard");
-	String imgpath = "/system/media/sdcard/" + imageName;
+	String imgpath = imageName;
 	File imgfile = new File(imgpath);
 	long fsize = imgfile.length();
 	context.toastMsg("image found size: " + fsize);
