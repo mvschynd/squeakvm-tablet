@@ -27,6 +27,7 @@ import java.io.FileFilter;
 
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class SqueakActivity extends Activity implements TextToSpeech.OnInitListener {
 	SqueakVM vm;
@@ -77,7 +78,22 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
 		    return f.getName().endsWith(".image");
 		}
 	    });
-	    return images;
+	    File[] subdirs = fdir.listFiles(new FileFilter() {
+		public boolean accept(File f) {
+		    return f.isDirectory();
+		}
+	    });
+	    ArrayList<String> sdnames = new ArrayList<String>();
+	    for(int i = 0; i < subdirs.length; i++) {
+		sdnames.add(subdirs[i].getAbsolutePath());
+	    }
+	    String[] sdstrn = (String[])sdnames.toArray(new String[sdnames.size()]);
+	    File[] subfiles = findImageFiles(sdstrn);
+	    ArrayList<File>fimages = new ArrayList<File>(Arrays.asList(images));
+	    for(int i = 0; i < subfiles.length; i++) {
+		fimages.add(subfiles[i]);
+	    }
+	    return (File[])fimages.toArray(new File[fimages.size()]);
 	} catch (Exception e) {
             return new File[0];
 	}
@@ -90,7 +106,9 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
 	    ArrayList<File> aimg = new ArrayList<File>(Arrays.asList(imgs));
 	    res.addAll(aimg);
 	}
-	return (File[])res.toArray(new File[res.size()]);
+	HashSet<File> hs = new HashSet<File>();
+	hs.addAll(res);
+	return (File[])hs.toArray(new File[hs.size()]);
     }
 
 	/** Called when the activity is first created. */
@@ -98,8 +116,9 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
 	final SqueakActivity ctx = this;
-    	toastMsg("onCreate");
-	String imgdirs = getText(R.string.imgdirs).toString();
+    	toastMsg("Select an image to load");
+	String extdir = Environment.getExternalStorageDirectory().getAbsolutePath();
+	String imgdirs = extdir + File.pathSeparator + getText(R.string.imgdirs).toString();
 	File[] imgfiles = findImageFiles(imgdirs.split(File.pathSeparator));
 	imgl = new SqueakImgList(this);
 	imgl.setAdapter(new ArrayAdapter<File>(this, R.layout.list_item, imgfiles));
@@ -125,9 +144,7 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
     	vm.view = view;
 	if(canspeak) vm.mTts = mTts;
     	vm.loadImage(imgpath, 16*1024*1024);
-//    	super.onCreate(savedInstanceState);
         setContentView(view);
-        /* Let's see if we can display the soft input */
         view.setFocusable(true);
 	view.setFocusableInTouchMode(true);
         view.requestFocus();
