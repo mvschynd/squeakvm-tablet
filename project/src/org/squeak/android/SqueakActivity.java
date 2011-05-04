@@ -56,7 +56,9 @@ public class SqueakActivity extends Activity implements TextToSpeech.OnInitListe
             } else {
                 // The TTS engine has been successfully initialized.
  		    canspeak = true;
-		    if(vm != null) vm.mTts = mTts;
+		    if(vm != null) {
+			vm.mTts = mTts;
+		    }
             }
         } else {
             // Initialization failed.

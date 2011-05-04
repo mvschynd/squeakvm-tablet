@@ -10,11 +10,13 @@ import org.squeak.android.SqueakActivity;
 import org.squeak.android.SqueakView;
 
 import android.os.Environment;
+import android.content.Context;
 import android.speech.tts.TextToSpeech;
 
 public class SqueakVM {
 	SqueakActivity context;
 	SqueakView view;
+	File imageDir;
 	TextToSpeech mTts = null;
 	float pitch = 1.0f;
 	float rate = 1.0f;
@@ -42,6 +44,7 @@ public class SqueakVM {
 	return mTts.stop();
     }
 
+
 /* Speak a given string if text */
 
     int speak(String txt) {
@@ -49,7 +52,7 @@ public class SqueakVM {
 	context.toastMsg("speaking: " + txt);
 	mTts.setPitch(pitch);
 	mTts.setSpeechRate(rate);
-	mTts.speak(txt, TextToSpeech.QUEUE_ADD, null);
+ 	mTts.speak(txt, TextToSpeech.QUEUE_ADD, null);
 	mTts.speak("", TextToSpeech.QUEUE_ADD, null);
 	return txt.length();
     }
@@ -74,6 +77,7 @@ public class SqueakVM {
     	}
 	fstr.close();
 	setImagePath(imgpath);
+	imageDir = new File(imgpath).getParentFile();
 	context.setTitle("Squeak: " + imgpath);
 	return usedheap;
     }
