@@ -65,7 +65,7 @@ public class SqueakVM {
 	File imgfile = new File(imgpath);
 	long fsize = imgfile.length();
 	context.toastMsg("image found size: " + fsize);
-	int usedheap = ((int)fsize + 8 * 1024 * 1024) & (~1);
+	int usedheap = ((int)fsize * 3) & (~1);
 	InputStream fstr = new FileInputStream(imgfile);
     	byte buf[] = new byte[4096];
     	int ofs, len;
